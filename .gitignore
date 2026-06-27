@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.agents/
+
+# accidental/system folders
+%SystemDrive%/
+
+# archives
+*.zip
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editor/system
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
