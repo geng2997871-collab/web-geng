@@ -313,6 +313,9 @@ function ProjectsGallery() {
   const total = projectGallery.length;
   const shellRef = useRef(null);
   const [offset, setOffset] = useState(0);
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
   const offsetRef = useRef(0);
   const targetOffsetRef = useRef(null);
   const [dragState, setDragState] = useState({
@@ -327,6 +330,16 @@ function ProjectsGallery() {
   useEffect(() => {
     offsetRef.current = offset;
   }, [offset]);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth < 768);
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
   useEffect(() => {
     let frameId = 0;
@@ -353,7 +366,8 @@ function ProjectsGallery() {
           setOffset(next);
         }
       } else if (!dragState.active && Date.now() > autoPausedUntilRef.current) {
-        const next = offsetRef.current + deltaTime * 0.00012;
+        const autoSpeed = isMobileViewport ? 0.000075 : 0.00012;
+        const next = offsetRef.current + deltaTime * autoSpeed;
         offsetRef.current = next;
         setOffset(next);
       }
@@ -363,7 +377,7 @@ function ProjectsGallery() {
 
     frameId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frameId);
-  }, [dragState.active]);
+  }, [dragState.active, isMobileViewport]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -394,6 +408,7 @@ function ProjectsGallery() {
   };
 
   const handleGalleryPointerMove = (event) => {
+    if (isMobileViewport) return;
     const shell = shellRef.current;
     if (!shell) return;
 
@@ -406,6 +421,7 @@ function ProjectsGallery() {
   };
 
   const handleGalleryPointerLeave = () => {
+    if (isMobileViewport) return;
     const shell = shellRef.current;
     if (!shell) return;
 
@@ -609,6 +625,7 @@ function VideoCard({ item, className = '' }) {
   return (
     <article
       className={`motion-reel-card motion-tone-${item.tone} ${className}`.trim()}
+      onClick={handleToggle}
     >
       <video
         ref={videoRef}
@@ -616,7 +633,7 @@ function VideoCard({ item, className = '' }) {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         style={{ objectPosition: item.objectPosition }}
       />
       <div className="motion-reel-card-overlay" />
@@ -625,7 +642,15 @@ function VideoCard({ item, className = '' }) {
         <strong>{item.title}</strong>
         <p>{item.description}</p>
       </div>
-      <button type="button" className="motion-reel-play" onClick={handleToggle} aria-label={isPlaying ? '\u6682\u505c\u89c6\u9891' : '\u64ad\u653e\u89c6\u9891'}>
+      <button
+        type="button"
+        className="motion-reel-play"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleToggle();
+        }}
+        aria-label={isPlaying ? '\u6682\u505c\u89c6\u9891' : '\u64ad\u653e\u89c6\u9891'}
+      >
         {isPlaying ? <Pause size={18} /> : <Play size={18} />}
       </button>
     </article>
@@ -792,8 +817,25 @@ function Closing() {
 }
 
 function App() {
+  const [enableDesktopSnap, setEnableDesktopSnap] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    return window.innerWidth >= 1024 && supportsFinePointer;
+  });
+
   useEffect(() => {
-    if (window.innerWidth < 1024) return;
+    const updateSnapMode = () => {
+      const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      setEnableDesktopSnap(window.innerWidth >= 1024 && supportsFinePointer);
+    };
+
+    updateSnapMode();
+    window.addEventListener('resize', updateSnapMode);
+    return () => window.removeEventListener('resize', updateSnapMode);
+  }, []);
+
+  useEffect(() => {
+    if (!enableDesktopSnap) return;
 
     const sections = Array.from(document.querySelectorAll('.section-full'));
     if (!sections.length) return;
@@ -856,7 +898,7 @@ function App() {
       window.removeEventListener('wheel', handleWheel);
       window.clearTimeout(unlockTimer);
     };
-  }, []);
+  }, [enableDesktopSnap]);
 
   return (
     <>
