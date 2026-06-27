@@ -57,6 +57,10 @@ canvas {
   display: block;
 }
 
+.mobile-only-break {
+  display: none;
+}
+
 .container {
   width: min(calc(100% - 96px), var(--max));
   margin: 0 auto;
@@ -1420,6 +1424,11 @@ nav a:hover {
   font-weight: 360;
 }
 
+.gallery-stage {
+  position: relative;
+  z-index: 2;
+}
+
 .gallery-track {
   position: relative;
   z-index: 2;
@@ -1585,6 +1594,14 @@ nav a:hover {
   color: rgba(238, 248, 255, 0.45);
   font-size: 11px;
   line-height: 1.55;
+}
+
+.gallery-controls {
+  display: none;
+}
+
+.gallery-arrow {
+  display: none;
 }
 
 .gallery-shell.is-active .gallery-heading,
@@ -2470,6 +2487,20 @@ nav a:hover {
     inset: 20px;
   }
 
+  .hero {
+    min-height: 100svh;
+  }
+
+  .hero-video {
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    min-height: calc(100svh - 40px);
+    object-position: 78% center;
+    transform: none;
+  }
+
   .container,
   .site-header,
   .about-brief-shell,
@@ -2676,9 +2707,13 @@ nav a:hover {
     line-height: 1.65;
   }
 
+  .mobile-only-break {
+    display: block;
+  }
+
   .gallery-shell {
     min-height: auto;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto;
     gap: 18px;
     padding: 22px 0 18px;
   }
@@ -2700,6 +2735,82 @@ nav a:hover {
   .gallery-card {
     width: 230px;
     height: 310px;
+  }
+
+  .gallery-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    pointer-events: auto;
+  }
+
+  .gallery-arrow-prev {
+    left: 6px;
+  }
+
+  .gallery-arrow-next {
+    right: 6px;
+  }
+
+  .gallery-controls {
+    display: none;
+  }
+
+  .gallery-arrow {
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(238, 248, 255, 0.24);
+    border-radius: 50%;
+    color: rgba(238, 248, 255, 0.92);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 32px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+  }
+
+  .gallery-arrow:active {
+    border-color: rgba(217, 31, 27, 0.55);
+    background: rgba(217, 31, 27, 0.18);
+  }
+
+  .gallery-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    z-index: 3;
+    display: none;
+    justify-content: space-between;
+    padding: 0 6px;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .gallery-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(238, 248, 255, 0.24);
+    border-radius: 50%;
+    color: rgba(238, 248, 255, 0.92);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 32px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+    pointer-events: auto;
+  }
+
+  .gallery-controls button:active {
+    border-color: rgba(217, 31, 27, 0.55);
+    background: rgba(217, 31, 27, 0.18);
   }
 
   .gallery-points {
@@ -2859,6 +2970,16 @@ nav a:hover {
     width: 14px;
   }
 
+  .hero-video {
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    min-height: calc(100svh - 40px);
+    object-position: 72% center;
+    transform: none;
+  }
+
   .hero-inner {
     padding-top: 86px;
     padding-bottom: 28px;
@@ -2983,6 +3104,23 @@ nav a:hover {
   .gallery-card {
     width: 190px;
     height: 262px;
+  }
+
+  .gallery-controls {
+    display: none;
+  }
+
+  .gallery-arrow-prev {
+    left: 0;
+  }
+
+  .gallery-arrow-next {
+    right: 0;
+  }
+
+  .gallery-arrow {
+    width: 40px;
+    height: 40px;
   }
 
   .gallery-card-copy {

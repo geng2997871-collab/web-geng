@@ -2,6 +2,8 @@
 import { createRoot } from 'react-dom/client';
 import {
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
   Pause,
   Play,
 } from 'lucide-react';
@@ -145,6 +147,7 @@ function Hero() {
         preload="auto"
         loop
         playsInline
+        disablePictureInPicture
         aria-hidden="true"
       />
       <header className="site-header">
@@ -276,7 +279,9 @@ function AboutBrief() {
               <span className="experience-panel-number">01</span>
               <span className="experience-panel-label">{'EDUCATION'}</span>
               <p>
-                {'武汉工程科技学院环境设计本科，夯实构图、色彩搭配、版式设计与空间视觉表达基础；马来亚大学公共管理硕士，进一步强化项目组织、传播逻辑与跨文化协作理解。'}
+                {'武汉工程科技学院环境设计本科，夯实构图、色彩搭配、版式设计与空间视觉表达基础；'}
+                <br className="mobile-only-break" />
+                {'马来亚大学公共管理硕士，进一步强化项目组织、传播逻辑与跨文化协作理解。'}
               </p>
             </article>
 
@@ -333,7 +338,14 @@ function ProjectsGallery() {
 
   useEffect(() => {
     const updateViewport = () => {
-      setIsMobileViewport(window.innerWidth < 768);
+      const nextIsMobile = window.innerWidth < 768;
+      setIsMobileViewport(nextIsMobile);
+      if (nextIsMobile) {
+        const centeredOffset = Math.round(offsetRef.current);
+        offsetRef.current = centeredOffset;
+        targetOffsetRef.current = null;
+        setOffset(centeredOffset);
+      }
     };
 
     updateViewport();
@@ -365,7 +377,11 @@ function ProjectsGallery() {
           offsetRef.current = next;
           setOffset(next);
         }
-      } else if (!dragState.active && Date.now() > autoPausedUntilRef.current) {
+      } else if (
+        !isMobileViewport &&
+        !dragState.active &&
+        Date.now() > autoPausedUntilRef.current
+      ) {
         const autoSpeed = isMobileViewport ? 0.000075 : 0.00012;
         const next = offsetRef.current + deltaTime * autoSpeed;
         offsetRef.current = next;
@@ -387,6 +403,12 @@ function ProjectsGallery() {
       ([entry]) => {
         if (entry.isIntersecting) {
           shell.classList.add('is-active');
+          if (isMobileViewport) {
+            const centeredOffset = Math.round(offsetRef.current);
+            offsetRef.current = centeredOffset;
+            targetOffsetRef.current = null;
+            setOffset(centeredOffset);
+          }
         }
       },
       { threshold: 0.35 },
@@ -394,7 +416,7 @@ function ProjectsGallery() {
 
     observer.observe(shell);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobileViewport]);
 
   const pauseAuto = () => {
     autoPausedUntilRef.current = Date.now() + 2800;
@@ -405,6 +427,12 @@ function ProjectsGallery() {
     const position = wrapPosition(index - current, total);
     pauseAuto();
     targetOffsetRef.current = current + position;
+  };
+
+  const handleGalleryStep = (direction) => {
+    pauseAuto();
+    const baseOffset = targetOffsetRef.current ?? offsetRef.current;
+    targetOffsetRef.current = Math.round(baseOffset) + direction;
   };
 
   const handleGalleryPointerMove = (event) => {
@@ -517,28 +545,48 @@ function ProjectsGallery() {
           </h2>
         </div>
 
-        <div
-          className={`gallery-track ${dragState.active ? 'is-dragging' : ''}`}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        >
-          {cards.map((card) => (
-            <article
-              key={`${card.title}-${card.index}`}
-              data-gallery-index={card.index}
-              className="gallery-card"
-              style={card.style}
-              onClick={() => handleCardClick(card.index)}
-            >
-              <img src={card.image} alt={card.title} draggable="false" />
-              <div className="gallery-card-copy">
-                <span>{card.category}</span>
-                <h3>{card.title}</h3>
-              </div>
-            </article>
-          ))}
+        <div className="gallery-stage">
+          <button
+            type="button"
+            className="gallery-arrow gallery-arrow-prev"
+            onClick={() => handleGalleryStep(-1)}
+            aria-label="\u4e0a\u4e00\u5f20\u4f5c\u54c1"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <div
+            className={`gallery-track ${dragState.active ? 'is-dragging' : ''}`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
+          >
+            {cards.map((card) => (
+              <article
+                key={`${card.title}-${card.index}`}
+                data-gallery-index={card.index}
+                className="gallery-card"
+                style={card.style}
+                onClick={() => handleCardClick(card.index)}
+              >
+                <img src={card.image} alt={card.title} draggable="false" />
+                <div className="gallery-card-copy">
+                  <span>{card.category}</span>
+                  <h3>{card.title}</h3>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="gallery-arrow gallery-arrow-next"
+            onClick={() => handleGalleryStep(1)}
+            aria-label="\u4e0b\u4e00\u5f20\u4f5c\u54c1"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
 
         <div className="gallery-points" aria-label="\u4f5c\u54c1\u65b9\u5411">
