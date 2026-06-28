@@ -726,6 +726,7 @@ function Strengths() {
   }, []);
 
   const handlePointerMove = (event) => {
+    if (window.innerWidth < 768 || event.pointerType === 'touch') return;
     const reel = reelRef.current;
     if (!reel) return;
 

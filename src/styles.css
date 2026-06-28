@@ -2837,6 +2837,58 @@ nav a:hover {
 
   .motion-reel-card {
     min-height: 180px;
+    opacity: 1;
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none;
+    filter: none;
+    contain: layout paint;
+    content-visibility: auto;
+    contain-intrinsic-size: 180px;
+  }
+
+  .motion-reel-glow,
+  .motion-layout-board::before,
+  .motion-layout-board::after {
+    display: none;
+  }
+
+  .motion-layout-board {
+    background: #07090d;
+  }
+
+  .motion-reel-card:hover {
+    transform: none !important;
+    box-shadow: none;
+  }
+
+  .motion-reel-card video {
+    filter: none;
+    transform: none !important;
+    transition: none !important;
+    backface-visibility: hidden;
+  }
+
+  .motion-reel-card:hover video {
+    filter: none;
+    transform: none !important;
+  }
+
+  .motion-reel-card-overlay {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.08));
+    transition: none !important;
+  }
+
+  .motion-reel-card:hover .motion-reel-card-overlay {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.08));
+  }
+
+  .motion-reel-card-meta {
+    transition: none !important;
+  }
+
+  .motion-reel-card:hover .motion-reel-card-meta {
+    transform: none;
   }
 
   .motion-reel-card-meta {
@@ -2859,6 +2911,9 @@ nav a:hover {
     height: 44px;
     right: 14px;
     bottom: 14px;
+    backdrop-filter: none;
+    transition: none !important;
+    box-shadow: none;
   }
 
   .closing-inner,
