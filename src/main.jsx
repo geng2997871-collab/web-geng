@@ -28,6 +28,7 @@ const motionWorks = [
     title: '\u573a\u666f',
     tag: 'SCENE',
     video: '/assets/work-atmosphere.mp4',
+    poster: '/assets/work-atmosphere-poster.webp',
     tone: 'landscape',
     objectPosition: 'center center',
     description: '\u4e00\u4e2a\u8352\u5de5\u4e1a\u6587\u660e\u901f\u5fd8\u7684\u6e2f\u53e3\uff0c\u94a2\u94c1\u4e0e\u96e8\u6c34\u4ea4\u7ec7\u51fa\u672a\u6765\u4e16\u754c\u7684\u8f6e\u5ed3\u3002',
@@ -36,6 +37,7 @@ const motionWorks = [
     title: '\u6676\u9ab8',
     tag: 'VISUAL',
     video: '/assets/work-crystal.mp4',
+    poster: '/assets/work-crystal-poster.webp',
     tone: 'landscape',
     objectPosition: 'center center',
     description: '\u673a\u68b0\u751f\u547d\u7684\u5f62\u6001\u63a2\u7d22\uff0c\u8fde\u63a5\u6750\u8d28\u4e0e\u60c5\u7eea\u7ed3\u6784\u7684\u5931\u771f\u610f\u8c61\u3002',
@@ -44,6 +46,7 @@ const motionWorks = [
     title: '\u5b9d\u77ff\u529b',
     tag: 'AD',
     video: '/assets/work-pocari.mp4',
+    poster: '/assets/work-pocari-poster.webp',
     tone: 'landscape',
     objectPosition: 'center center',
     description: '\u66f4\u5feb\u7684\u7c92\u5b50\u6d41\u52a8\uff0c\u8fce\u63a5\u6bcf\u4e00\u6b21\u6311\u6218\uff0c\u8ba9\u6c57\u6c34\u6210\u4e3a\u524d\u8fdb\u7684\u52a8\u529b\u3002',
@@ -52,6 +55,7 @@ const motionWorks = [
     title: '\u7ec8\u8001',
     tag: 'FILM',
     video: '/assets/work-elder.mp4',
+    poster: '/assets/work-elder-poster.webp',
     tone: 'square',
     objectPosition: 'center center',
     description: '\u5728\u9ed1\u6697\u4e2d\u5bfb\u627e\u5149\uff0c\u5728\u5bc2\u9759\u4e2d\u542c\u89c1\u7075\u9b42\u7684\u53ec\u5524\u3002',
@@ -60,6 +64,7 @@ const motionWorks = [
     title: '\u94f8\u5e01\u673a',
     tag: 'FUTURE',
     video: '/assets/work-mint.mp4',
+    poster: '/assets/work-mint-poster.webp',
     tone: 'square',
     objectPosition: 'center center',
     description: '\u5f53\u79d1\u6280\u5f00\u59cb\u94f8\u9020\u4ef7\u503c\uff0c\u672a\u6765\u7684\u8d27\u5e01\u5c06\u7531\u673a\u5668\u4e0e\u4ee3\u7801\u5171\u540c\u953b\u9020\u3002',
@@ -426,12 +431,26 @@ function ProjectsGallery() {
     const current = offsetRef.current;
     const position = wrapPosition(index - current, total);
     pauseAuto();
+    if (isMobileViewport) {
+      const next = current + position;
+      offsetRef.current = next;
+      targetOffsetRef.current = null;
+      setOffset(next);
+      return;
+    }
     targetOffsetRef.current = current + position;
   };
 
   const handleGalleryStep = (direction) => {
     pauseAuto();
     const baseOffset = targetOffsetRef.current ?? offsetRef.current;
+    if (isMobileViewport) {
+      const next = Math.round(baseOffset) + direction;
+      offsetRef.current = next;
+      targetOffsetRef.current = null;
+      setOffset(next);
+      return;
+    }
     targetOffsetRef.current = Math.round(baseOffset) + direction;
   };
 
@@ -458,6 +477,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerDown = (event) => {
+    if (isMobileViewport) return;
     pauseAuto();
     targetOffsetRef.current = null;
     setDragState({
@@ -471,6 +491,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerMove = (event) => {
+    if (isMobileViewport) return;
     if (!dragState.active) return;
     const delta = event.clientX - dragState.startX;
     const next = dragState.startOffset - delta / 240;
@@ -480,6 +501,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerUp = (event) => {
+    if (isMobileViewport) return;
     if (!dragState.active) return;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     const clickedCard = event.target.closest?.('[data-gallery-index]');
@@ -506,10 +528,31 @@ function ProjectsGallery() {
   };
 
   const cards = useMemo(() => {
+    const mobileIndex = ((Math.round(offset) % total) + total) % total;
+
     return projectGallery.map((project, index) => {
       const position = wrapPosition(index - offset, total);
       const distance = Math.abs(position);
       const tilt = dragState.active ? Math.max(-12, Math.min(12, dragState.delta / 18)) : 0;
+
+      if (isMobileViewport) {
+        const isActive = index === mobileIndex;
+        return {
+          ...project,
+          index,
+          style: {
+            '--x': '0px',
+            '--y': '0px',
+            '--scale': isActive ? '1' : '0.98',
+            '--rotate-y': '0deg',
+            '--rotate-z': '0deg',
+            '--opacity': isActive ? '1' : '0',
+            '--z': isActive ? '2' : '1',
+            '--pointer': isActive ? 'auto' : 'none',
+            '--reveal-delay': '0ms',
+          },
+        };
+      }
 
       return {
         ...project,
@@ -527,7 +570,7 @@ function ProjectsGallery() {
         },
       };
     });
-  }, [dragState.active, dragState.delta, offset, total]);
+  }, [dragState.active, dragState.delta, isMobileViewport, offset, total]);
 
   return (
     <section className="projects gallery-section section-full" id="works">
@@ -678,6 +721,7 @@ function VideoCard({ item, className = '' }) {
       <video
         ref={videoRef}
         src={item.video}
+        poster={item.poster}
         muted
         loop
         playsInline
