@@ -326,8 +326,14 @@ function ProjectsGallery() {
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   );
+  const [isTabletLandscapeViewport, setIsTabletLandscapeViewport] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 768 && window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
+  });
+  const useReducedGallery = isMobileViewport || isTabletLandscapeViewport;
   const offsetRef = useRef(0);
   const targetOffsetRef = useRef(null);
+  const lastReducedAutoRef = useRef(0);
   const [dragState, setDragState] = useState({
     active: false,
     startX: 0,
@@ -344,8 +350,11 @@ function ProjectsGallery() {
   useEffect(() => {
     const updateViewport = () => {
       const nextIsMobile = window.innerWidth < 768;
+      const nextIsTabletLandscape =
+        window.innerWidth >= 768 && window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
       setIsMobileViewport(nextIsMobile);
-      if (nextIsMobile) {
+      setIsTabletLandscapeViewport(nextIsTabletLandscape);
+      if (nextIsMobile || nextIsTabletLandscape) {
         const centeredOffset = Math.round(offsetRef.current);
         offsetRef.current = centeredOffset;
         targetOffsetRef.current = null;
@@ -383,11 +392,24 @@ function ProjectsGallery() {
           setOffset(next);
         }
       } else if (
-        !isMobileViewport &&
+        isTabletLandscapeViewport &&
         !dragState.active &&
         Date.now() > autoPausedUntilRef.current
       ) {
-        const autoSpeed = isMobileViewport ? 0.000075 : 0.00012;
+        if (!lastReducedAutoRef.current) lastReducedAutoRef.current = time;
+        if (time - lastReducedAutoRef.current > 2600) {
+          const next = Math.round(offsetRef.current) + 1;
+          offsetRef.current = next;
+          targetOffsetRef.current = null;
+          setOffset(next);
+          lastReducedAutoRef.current = time;
+        }
+      } else if (
+        !useReducedGallery &&
+        !dragState.active &&
+        Date.now() > autoPausedUntilRef.current
+      ) {
+        const autoSpeed = 0.00012;
         const next = offsetRef.current + deltaTime * autoSpeed;
         offsetRef.current = next;
         setOffset(next);
@@ -398,7 +420,7 @@ function ProjectsGallery() {
 
     frameId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frameId);
-  }, [dragState.active, isMobileViewport]);
+  }, [dragState.active, isTabletLandscapeViewport, useReducedGallery]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -408,7 +430,7 @@ function ProjectsGallery() {
       ([entry]) => {
         if (entry.isIntersecting) {
           shell.classList.add('is-active');
-          if (isMobileViewport) {
+          if (useReducedGallery) {
             const centeredOffset = Math.round(offsetRef.current);
             offsetRef.current = centeredOffset;
             targetOffsetRef.current = null;
@@ -421,7 +443,7 @@ function ProjectsGallery() {
 
     observer.observe(shell);
     return () => observer.disconnect();
-  }, [isMobileViewport]);
+  }, [useReducedGallery]);
 
   const pauseAuto = () => {
     autoPausedUntilRef.current = Date.now() + 2800;
@@ -431,7 +453,7 @@ function ProjectsGallery() {
     const current = offsetRef.current;
     const position = wrapPosition(index - current, total);
     pauseAuto();
-    if (isMobileViewport) {
+    if (useReducedGallery) {
       const next = current + position;
       offsetRef.current = next;
       targetOffsetRef.current = null;
@@ -444,7 +466,7 @@ function ProjectsGallery() {
   const handleGalleryStep = (direction) => {
     pauseAuto();
     const baseOffset = targetOffsetRef.current ?? offsetRef.current;
-    if (isMobileViewport) {
+    if (useReducedGallery) {
       const next = Math.round(baseOffset) + direction;
       offsetRef.current = next;
       targetOffsetRef.current = null;
@@ -455,7 +477,7 @@ function ProjectsGallery() {
   };
 
   const handleGalleryPointerMove = (event) => {
-    if (isMobileViewport) return;
+    if (useReducedGallery) return;
     const shell = shellRef.current;
     if (!shell) return;
 
@@ -468,7 +490,7 @@ function ProjectsGallery() {
   };
 
   const handleGalleryPointerLeave = () => {
-    if (isMobileViewport) return;
+    if (useReducedGallery) return;
     const shell = shellRef.current;
     if (!shell) return;
 
@@ -477,7 +499,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerDown = (event) => {
-    if (isMobileViewport) return;
+    if (useReducedGallery) return;
     pauseAuto();
     targetOffsetRef.current = null;
     setDragState({
@@ -491,7 +513,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerMove = (event) => {
-    if (isMobileViewport) return;
+    if (useReducedGallery) return;
     if (!dragState.active) return;
     const delta = event.clientX - dragState.startX;
     const next = dragState.startOffset - delta / 240;
@@ -501,7 +523,7 @@ function ProjectsGallery() {
   };
 
   const handlePointerUp = (event) => {
-    if (isMobileViewport) return;
+    if (useReducedGallery) return;
     if (!dragState.active) return;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     const clickedCard = event.target.closest?.('[data-gallery-index]');
@@ -535,7 +557,7 @@ function ProjectsGallery() {
       const distance = Math.abs(position);
       const tilt = dragState.active ? Math.max(-12, Math.min(12, dragState.delta / 18)) : 0;
 
-      if (isMobileViewport) {
+      if (useReducedGallery) {
         const isActive = index === mobileIndex;
         return {
           ...project,
@@ -570,7 +592,7 @@ function ProjectsGallery() {
         },
       };
     });
-  }, [dragState.active, dragState.delta, isMobileViewport, offset, total]);
+  }, [dragState.active, dragState.delta, offset, total, useReducedGallery]);
 
   return (
     <section className="projects gallery-section section-full" id="works">
