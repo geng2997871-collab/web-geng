@@ -326,6 +326,10 @@ function ProjectsGallery() {
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   );
+  const [isTabletLandscapeViewport, setIsTabletLandscapeViewport] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 768 && window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
+  });
   const offsetRef = useRef(0);
   const targetOffsetRef = useRef(null);
   const [dragState, setDragState] = useState({
@@ -344,7 +348,10 @@ function ProjectsGallery() {
   useEffect(() => {
     const updateViewport = () => {
       const nextIsMobile = window.innerWidth < 768;
+      const nextIsTabletLandscape =
+        window.innerWidth >= 768 && window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
       setIsMobileViewport(nextIsMobile);
+      setIsTabletLandscapeViewport(nextIsTabletLandscape);
       if (nextIsMobile) {
         const centeredOffset = Math.round(offsetRef.current);
         offsetRef.current = centeredOffset;
@@ -384,6 +391,7 @@ function ProjectsGallery() {
         }
       } else if (
         !isMobileViewport &&
+        !isTabletLandscapeViewport &&
         !dragState.active &&
         Date.now() > autoPausedUntilRef.current
       ) {
@@ -398,7 +406,7 @@ function ProjectsGallery() {
 
     frameId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frameId);
-  }, [dragState.active, isMobileViewport]);
+  }, [dragState.active, isMobileViewport, isTabletLandscapeViewport]);
 
   useEffect(() => {
     const shell = shellRef.current;
