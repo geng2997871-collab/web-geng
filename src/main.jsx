@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   ArrowUpRight,
@@ -7,6 +7,7 @@ import {
   Pause,
   Play,
 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import './styles.css';
 
 const contact = {
@@ -1008,6 +1009,7 @@ function App() {
       <ProjectsGallery />
       <Strengths />
       <Closing />
+      <Analytics />
     </>
   );
 }
@@ -1017,4 +1019,3 @@ createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 );
-
